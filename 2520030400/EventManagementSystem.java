@@ -247,9 +247,11 @@ public class EventManagementSystem {
             System.out.println("========== ORGANIZER MENU ==========");
             System.out.println("1. Add Event");
             System.out.println("2. View All Events");
-            System.out.println("3. Search Event");
+            System.out.println("3. Search Event (KMP)");
             System.out.println("4. View My Events");
-            System.out.println("5. Logout");
+            System.out.println("5. Edit Distance Search");
+            System.out.println("6. Network Flow");
+            System.out.println("7. Logout");
 
             int choice = readInt(sc, "Enter choice: ");
 
@@ -272,6 +274,14 @@ public class EventManagementSystem {
                     break;
 
                 case 5:
+                    editDistanceSearch(sc);
+                    break;
+
+                case 6:
+                    networkFlowMenu(sc);
+                    break;
+                
+                case 7:
                     System.out.println("Logged out successfully.");
                     return;
 
@@ -487,10 +497,11 @@ public class EventManagementSystem {
             System.out.println();
             System.out.println("========== PARTICIPANT MENU ==========");
             System.out.println("1. View Events");
-            System.out.println("2. Search Event");
+            System.out.println("2. Search Event (KMP)");
             System.out.println("3. Register for Event");
             System.out.println("4. View My Registrations");
-            System.out.println("5. Logout");
+            System.out.println("5. Edit Distance Search");
+            System.out.println("6. Logout");
 
             int choice = readInt(sc, "Enter choice: ");
 
@@ -513,6 +524,10 @@ public class EventManagementSystem {
                     break;
 
                 case 5:
+                    editDistanceSearch(sc);
+                    break;
+
+                case 6:
                     System.out.println("Logged out successfully.");
                     return;
 
@@ -683,10 +698,11 @@ public class EventManagementSystem {
             System.out.println();
             System.out.println("========== VOLUNTEER MENU ==========");
             System.out.println("1. View Events");
-            System.out.println("2. Search Event");
+            System.out.println("2. Search Event (KMP)");
             System.out.println("3. Volunteer for Event");
             System.out.println("4. View My Volunteer Events");
-            System.out.println("5. Logout");
+            System.out.println("5. Edit Distance Search");
+            System.out.println("6. Logout");
 
             int choice = readInt(sc, "Enter choice: ");
 
@@ -709,6 +725,10 @@ public class EventManagementSystem {
                     break;
 
                 case 5:
+                    editDistanceSearch(sc);
+                    break;
+
+                case 6:
                     System.out.println("Logged out successfully.");
                     return;
 
@@ -820,7 +840,23 @@ public class EventManagementSystem {
             );
         }
     }
+static void networkFlowMenu(Scanner sc) {
+    System.out.println("\n===== NETWORK FLOW =====");
+    System.out.println("1. Run Maximum Flow");
+    System.out.println("2. Back");
 
+    System.out.print("Enter your choice: ");
+    int choice = sc.nextInt();
+    sc.nextLine();
+
+    if (choice == 1) {
+        System.out.println("Network Flow will be implemented here.");
+    } else if (choice == 2) {
+        return;
+    } else {
+        System.out.println("Invalid choice.");
+    }
+}
     // =========================================================
     // VIEW MY VOLUNTEER EVENTS
     // =========================================================
@@ -1062,6 +1098,152 @@ public class EventManagementSystem {
         }
 
         return lps;
+    }
+
+    // =========================================================
+    // EDIT DISTANCE SEARCH
+    // =========================================================
+
+    static void editDistanceSearch(Scanner sc) {
+
+        if (eventCount == 0) {
+            System.out.println("No events available.");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("========== EDIT DISTANCE SEARCH ==========");
+        System.out.println("This search allows small spelling mistakes.");
+        System.out.print("Enter event name or keyword: ");
+
+        String pattern = sc.nextLine().trim().toLowerCase();
+
+        if (pattern.isEmpty()) {
+            System.out.println("Search keyword cannot be empty.");
+            return;
+        }
+
+        // A distance of 0 means exact spelling.
+        // A distance of 1 or 2 means a small spelling difference.
+        int maxDistance = 2;
+        boolean found = false;
+
+        for (int i = 0; i < eventCount; i++) {
+
+            int nameDistance = minimumWordEditDistance(
+                    pattern,
+                    eventNames[i]
+            );
+
+            int descriptionDistance = minimumWordEditDistance(
+                    pattern,
+                    eventDescriptions[i]
+            );
+
+            int venueDistance = minimumWordEditDistance(
+                    pattern,
+                    venues[i]
+            );
+
+            int distance = Math.min(
+                    nameDistance,
+                    Math.min(descriptionDistance, venueDistance)
+            );
+
+            if (distance <= maxDistance) {
+
+                printEvent(i);
+                System.out.println("Edit Distance : " + distance);
+
+                if (distance == 0) {
+                    System.out.println("Match Type    : Exact match");
+                } else {
+                    System.out.println("Match Type    : Approximate match");
+                }
+
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println();
+            System.out.println("No close matching events found.");
+            System.out.println(
+                    "Try a keyword with at most "
+                            + maxDistance
+                            + " spelling changes."
+            );
+        }
+    }
+
+    // Finds the smallest Edit Distance between the search pattern
+    // and any word in the supplied text.
+    static int minimumWordEditDistance(String pattern, String text) {
+
+        if (text == null || text.trim().isEmpty()) {
+            return Integer.MAX_VALUE;
+        }
+
+        String[] words = text.toLowerCase().split("\\s+");
+        int minimum = Integer.MAX_VALUE;
+
+        for (String word : words) {
+
+            String cleanWord = word.replaceAll("[^a-z0-9]", "");
+
+            if (!cleanWord.isEmpty()) {
+                int distance = editDistance(pattern, cleanWord);
+
+                if (distance < minimum) {
+                    minimum = distance;
+                }
+            }
+        }
+
+        return minimum;
+    }
+
+    // =========================================================
+    // EDIT DISTANCE ALGORITHM
+    // =========================================================
+
+    static int editDistance(String first, String second) {
+
+        int m = first.length();
+        int n = second.length();
+
+        int[][] dp = new int[m + 1][n + 1];
+
+        // Cost of converting a string to an empty string.
+        for (int i = 0; i <= m; i++) {
+            dp[i][0] = i;
+        }
+
+        for (int j = 0; j <= n; j++) {
+            dp[0][j] = j;
+        }
+
+        for (int i = 1; i <= m; i++) {
+
+            for (int j = 1; j <= n; j++) {
+
+                if (first.charAt(i - 1) == second.charAt(j - 1)) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+
+                    int insert = dp[i][j - 1];
+                    int delete = dp[i - 1][j];
+                    int replace = dp[i - 1][j - 1];
+
+                    dp[i][j] = 1 + Math.min(
+                            insert,
+                            Math.min(delete, replace)
+                    );
+                }
+            }
+        }
+
+        return dp[m][n];
     }
 
     // =========================================================
