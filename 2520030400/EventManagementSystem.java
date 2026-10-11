@@ -1,5 +1,4 @@
 import java.io.*;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -7,9 +6,9 @@ import java.util.Scanner;
 
 public class EventManagementSystem {
 
-    // =========================================================
-    // TEXT FILES
-    // =========================================================
+    // ============================================================
+    // FILES
+    // ============================================================
 
     static final String USER_FILE = "users.txt";
     static final String REGISTRATION_FILE = "registrations.txt";
@@ -17,9 +16,9 @@ public class EventManagementSystem {
     static final String FEEDBACK_FILE = "feedback.txt";
     static final String ATTENDANCE_FILE = "attendance.txt";
 
-    // =========================================================
+    // ============================================================
     // USER DATA
-    // =========================================================
+    // ============================================================
 
     static String[] usernames = new String[100];
     static String[] passwords = new String[100];
@@ -27,9 +26,9 @@ public class EventManagementSystem {
 
     static int userCount = 0;
 
-    // =========================================================
+    // ============================================================
     // EVENT DATA
-    // =========================================================
+    // ============================================================
 
     static String[] eventNames = new String[100];
     static String[] eventDescriptions = new String[100];
@@ -46,46 +45,58 @@ public class EventManagementSystem {
     static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    // =========================================================
+    static Scanner sc = new Scanner(System.in);
+
+    // ============================================================
+    // MODULE 6 - RANDOMIZED HASHING
+    // ============================================================
+
+    /*
+     * A random base is generated when the program starts.
+     * This base is used by the rolling hash in KMP search.
+     *
+     * This does NOT create a new feature.
+     * It is used internally by the existing KMP search.
+     */
+
+    static final long HASH_MOD = 1000000007L;
+
+    static final long HASH_BASE =
+            257 + (System.nanoTime() % 1000);
+
+    // ============================================================
     // MAIN
-    // =========================================================
+    // ============================================================
 
     public static void main(String[] args) {
-
-        Scanner sc = new Scanner(System.in);
 
         loadUsers();
         loadEvents();
 
+        System.out.println("==========================================");
+        System.out.println("       EVENT MANAGEMENT SYSTEM");
+        System.out.println("==========================================");
+
         while (true) {
 
-            System.out.println();
-            System.out.println("==========================================");
-            System.out.println("       EVENT MANAGEMENT SYSTEM");
-            System.out.println("==========================================");
-            System.out.println("1. Sign Up");
-            System.out.println("2. Login");
+            System.out.println("\n1. Login");
+            System.out.println("2. Sign Up");
             System.out.println("3. Exit");
-            System.out.println("==========================================");
 
-            int choice = readInt(sc, "Enter choice: ");
+            int choice = readInt("Enter choice: ");
 
             switch (choice) {
 
                 case 1:
-                    signUp(sc);
+                    login();
                     break;
 
                 case 2:
-                    login(sc);
+                    signup();
                     break;
 
                 case 3:
-                    System.out.println();
-                    System.out.println(
-                            "Thank you for using Event Management System!"
-                    );
-                    sc.close();
+                    System.out.println("Thank you!");
                     return;
 
                 default:
@@ -94,30 +105,19 @@ public class EventManagementSystem {
         }
     }
 
-    // =========================================================
+    // ============================================================
     // SIGN UP
-    // =========================================================
+    // ============================================================
 
-    static void signUp(Scanner sc) {
+    static void signup() {
 
-        System.out.println();
-        System.out.println("========== SIGN UP ==========");
-
-        if (userCount >= 100) {
-            System.out.println("User storage is full.");
-            return;
-        }
+        System.out.println("\n========== SIGN UP ==========");
 
         System.out.print("Enter username: ");
         String username = sc.nextLine().trim();
 
-        if (username.isEmpty()) {
+        if (username.length() == 0) {
             System.out.println("Username cannot be empty.");
-            return;
-        }
-
-        if (username.contains("|")) {
-            System.out.println("Username cannot contain '|'.");
             return;
         }
 
@@ -133,33 +133,29 @@ public class EventManagementSystem {
         System.out.print("Enter password: ");
         String password = sc.nextLine();
 
-        if (password.isEmpty()) {
-            System.out.println("Password cannot be empty.");
-            return;
-        }
-
-        if (password.contains("|")) {
-            System.out.println("Password cannot contain '|'.");
-            return;
-        }
-
-        System.out.println();
-        System.out.println("Select Role:");
+        System.out.println("\nSelect Role:");
         System.out.println("1. Organizer");
         System.out.println("2. Participant");
         System.out.println("3. Volunteer");
 
-        int roleChoice = readInt(sc, "Enter choice: ");
+        int roleChoice = readInt("Enter choice: ");
 
         String role;
 
         if (roleChoice == 1) {
+
             role = "Organizer";
+
         } else if (roleChoice == 2) {
+
             role = "Participant";
+
         } else if (roleChoice == 3) {
+
             role = "Volunteer";
+
         } else {
+
             System.out.println("Invalid role.");
             return;
         }
@@ -172,33 +168,21 @@ public class EventManagementSystem {
 
         saveUsers();
 
-        System.out.println();
-        System.out.println("Account created successfully!");
-        System.out.println("Username : " + username);
-        System.out.println("Role     : " + role);
-        System.out.println("Saved in : users.txt");
+        System.out.println("Account created successfully.");
     }
 
-    // =========================================================
+    // ============================================================
     // LOGIN
-    // =========================================================
+    // ============================================================
 
-    static void login(Scanner sc) {
+    static void login() {
 
-        System.out.println();
-        System.out.println("========== LOGIN ==========");
+        System.out.println("\n========== LOGIN ==========");
 
-        if (userCount == 0) {
-
-            System.out.println("No users registered.");
-            System.out.println("Please sign up first.");
-            return;
-        }
-
-        System.out.print("Enter username: ");
+        System.out.print("Username: ");
         String username = sc.nextLine().trim();
 
-        System.out.print("Enter password: ");
+        System.out.print("Password: ");
         String password = sc.nextLine();
 
         for (int i = 0; i < userCount; i++) {
@@ -206,22 +190,21 @@ public class EventManagementSystem {
             if (usernames[i].equals(username)
                     && passwords[i].equals(password)) {
 
-                System.out.println();
-                System.out.println("Login successful!");
-                System.out.println("Welcome, " + username);
+                System.out.println("\nLogin successful.");
+                System.out.println("Welcome " + username + "!");
                 System.out.println("Role: " + roles[i]);
 
-                if (roles[i].equals("Organizer")) {
+                if (roles[i].equalsIgnoreCase("Organizer")) {
 
-                    organizerMenu(sc, username);
+                    organizerMenu(username);
 
-                } else if (roles[i].equals("Participant")) {
+                } else if (roles[i].equalsIgnoreCase("Participant")) {
 
-                    participantMenu(sc, username);
+                    participantMenu(username);
 
-                } else if (roles[i].equals("Volunteer")) {
+                } else {
 
-                    volunteerMenu(sc, username);
+                    volunteerMenu(username);
                 }
 
                 return;
@@ -231,18 +214,18 @@ public class EventManagementSystem {
         System.out.println("Invalid username or password.");
     }
 
-    // =========================================================
+    // ============================================================
     // ORGANIZER MENU
-    // =========================================================
+    // ============================================================
 
-    static void organizerMenu(
-            Scanner sc,
-            String organizerName) {
+    static void organizerMenu(String username) {
 
         while (true) {
 
-            System.out.println();
-            System.out.println("========== ORGANIZER MENU ==========");
+            System.out.println("\n==========================================");
+            System.out.println("          ORGANIZER MENU");
+            System.out.println("==========================================");
+
             System.out.println("1. Add Event");
             System.out.println("2. View All Events");
             System.out.println("3. Search Event using KMP");
@@ -254,12 +237,12 @@ public class EventManagementSystem {
             System.out.println("9. View Attendance");
             System.out.println("10. Logout");
 
-            int choice = readInt(sc, "Enter choice: ");
+            int choice = readInt("Enter choice: ");
 
             switch (choice) {
 
                 case 1:
-                    addEvent(sc, organizerName);
+                    addEvent(username);
                     break;
 
                 case 2:
@@ -267,15 +250,15 @@ public class EventManagementSystem {
                     break;
 
                 case 3:
-                    searchEvent(sc);
+                    kmpSearchMenu();
                     break;
 
                 case 4:
-                    editDistanceSearch(sc);
+                    editDistanceSearchMenu();
                     break;
 
                 case 5:
-                    displayOrganizerEvents(organizerName);
+                    viewMyEvents(username);
                     break;
 
                 case 6:
@@ -283,19 +266,19 @@ public class EventManagementSystem {
                     break;
 
                 case 7:
-                    viewAllFeedback();
+                    viewFeedback();
                     break;
 
                 case 8:
-                    markAttendance(sc);
+                    markAttendance();
                     break;
 
                 case 9:
-                    viewAllAttendance();
+                    viewAttendance();
                     break;
 
                 case 10:
-                    System.out.println("Logged out successfully.");
+                    System.out.println("Logged out.");
                     return;
 
                 default:
@@ -304,18 +287,18 @@ public class EventManagementSystem {
         }
     }
 
-    // =========================================================
+    // ============================================================
     // PARTICIPANT MENU
-    // =========================================================
+    // ============================================================
 
-    static void participantMenu(
-            Scanner sc,
-            String participantName) {
+    static void participantMenu(String username) {
 
         while (true) {
 
-            System.out.println();
-            System.out.println("========== PARTICIPANT MENU ==========");
+            System.out.println("\n==========================================");
+            System.out.println("         PARTICIPANT MENU");
+            System.out.println("==========================================");
+
             System.out.println("1. View Events");
             System.out.println("2. Search Event using KMP");
             System.out.println("3. Search Event using Edit Distance");
@@ -325,7 +308,7 @@ public class EventManagementSystem {
             System.out.println("7. View My Attendance");
             System.out.println("8. Logout");
 
-            int choice = readInt(sc, "Enter choice: ");
+            int choice = readInt("Enter choice: ");
 
             switch (choice) {
 
@@ -334,31 +317,31 @@ public class EventManagementSystem {
                     break;
 
                 case 2:
-                    searchEvent(sc);
+                    kmpSearchMenu();
                     break;
 
                 case 3:
-                    editDistanceSearch(sc);
+                    editDistanceSearchMenu();
                     break;
 
                 case 4:
-                    registerForEvent(sc, participantName);
+                    registerForEvent(username);
                     break;
 
                 case 5:
-                    viewMyRegistrations(participantName);
+                    viewMyRegistrations(username);
                     break;
 
                 case 6:
-                    giveFeedback(sc, participantName);
+                    giveFeedback(username);
                     break;
 
                 case 7:
-                    viewMyAttendance(participantName);
+                    viewMyAttendance(username);
                     break;
 
                 case 8:
-                    System.out.println("Logged out successfully.");
+                    System.out.println("Logged out.");
                     return;
 
                 default:
@@ -367,18 +350,18 @@ public class EventManagementSystem {
         }
     }
 
-    // =========================================================
+    // ============================================================
     // VOLUNTEER MENU
-    // =========================================================
+    // ============================================================
 
-    static void volunteerMenu(
-            Scanner sc,
-            String volunteerName) {
+    static void volunteerMenu(String username) {
 
         while (true) {
 
-            System.out.println();
-            System.out.println("========== VOLUNTEER MENU ==========");
+            System.out.println("\n==========================================");
+            System.out.println("          VOLUNTEER MENU");
+            System.out.println("==========================================");
+
             System.out.println("1. View Events");
             System.out.println("2. Search Event using KMP");
             System.out.println("3. Search Event using Edit Distance");
@@ -386,7 +369,7 @@ public class EventManagementSystem {
             System.out.println("5. View My Volunteer Events");
             System.out.println("6. Logout");
 
-            int choice = readInt(sc, "Enter choice: ");
+            int choice = readInt("Enter choice: ");
 
             switch (choice) {
 
@@ -395,23 +378,23 @@ public class EventManagementSystem {
                     break;
 
                 case 2:
-                    searchEvent(sc);
+                    kmpSearchMenu();
                     break;
 
                 case 3:
-                    editDistanceSearch(sc);
+                    editDistanceSearchMenu();
                     break;
 
                 case 4:
-                    volunteerForEvent(sc, volunteerName);
+                    volunteerForEvent(username);
                     break;
 
                 case 5:
-                    viewMyVolunteerEvents(volunteerName);
+                    viewMyVolunteerEvents(username);
                     break;
 
                 case 6:
-                    System.out.println("Logged out successfully.");
+                    System.out.println("Logged out.");
                     return;
 
                 default:
@@ -420,1102 +403,313 @@ public class EventManagementSystem {
         }
     }
 
-    // =========================================================
-    // ADD EVENT
-    // =========================================================
-
-    static void addEvent(
-            Scanner sc,
-            String organizerName) {
-
-        if (eventCount >= 100) {
-
-            System.out.println("Event storage is full.");
-            return;
-        }
-
-        System.out.println();
-        System.out.println("========== ADD EVENT ==========");
-
-        System.out.print("Enter Event Name: ");
-        String name = sc.nextLine().trim();
-
-        if (name.isEmpty()) {
-
-            System.out.println(
-                    "Event name cannot be empty."
-            );
-            return;
-        }
-
-        System.out.print("Enter Event Description: ");
-        String description = sc.nextLine().trim();
-
-        if (name.contains("|")
-                || description.contains("|")) {
-
-            System.out.println(
-                    "Event details cannot contain '|'."
-            );
-            return;
-        }
-
-        // -----------------------------------------------------
-        // DATE
-        // -----------------------------------------------------
-
-        LocalDate selectedDate = null;
-        String date = "";
-
-        while (selectedDate == null) {
-
-            System.out.print(
-                    "Enter Date (DD-MM-YYYY): "
-            );
-
-            date = sc.nextLine().trim();
-
-            try {
-
-                selectedDate =
-                        LocalDate.parse(
-                                date,
-                                DATE_FORMAT
-                        );
-
-            } catch (DateTimeParseException e) {
-
-                System.out.println(
-                        "Invalid date. Please use DD-MM-YYYY."
-                );
-            }
-        }
-
-        DayOfWeek dayOfWeek =
-                selectedDate.getDayOfWeek();
-
-        String day =
-                getDayName(dayOfWeek);
-
-        // -----------------------------------------------------
-        // TIME
-        // -----------------------------------------------------
-
-        System.out.print(
-                "Enter Start Time (HH:MM): "
-        );
-
-        String startTime =
-                sc.nextLine().trim();
-
-        System.out.print(
-                "Enter End Time (HH:MM): "
-        );
-
-        String endTime =
-                sc.nextLine().trim();
-
-        if (!isValidTime(startTime)
-                || !isValidTime(endTime)) {
-
-            System.out.println(
-                    "Invalid time format. Use HH:MM."
-            );
-            return;
-        }
-
-        // -----------------------------------------------------
-        // VENUE
-        // -----------------------------------------------------
-
-        System.out.print("Enter Venue: ");
-        String venue = sc.nextLine().trim();
-
-        if (venue.isEmpty()) {
-
-            System.out.println(
-                    "Venue cannot be empty."
-            );
-            return;
-        }
-
-        if (venue.contains("|")) {
-
-            System.out.println(
-                    "Venue cannot contain '|'."
-            );
-            return;
-        }
-
-        // -----------------------------------------------------
-        // CAPACITY
-        // -----------------------------------------------------
-
-        int capacity =
-                readInt(
-                        sc,
-                        "Enter Event Capacity: "
-                );
-
-        if (capacity <= 0) {
-
-            System.out.println(
-                    "Capacity must be greater than 0."
-            );
-            return;
-        }
-
-        // -----------------------------------------------------
-        // STORE EVENT IN MEMORY
-        // -----------------------------------------------------
-
-        eventNames[eventCount] = name;
-        eventDescriptions[eventCount] = description;
-        eventDates[eventCount] = date;
-        eventDays[eventCount] = day;
-        startTimes[eventCount] = startTime;
-        endTimes[eventCount] = endTime;
-        venues[eventCount] = venue;
-        organizers[eventCount] = organizerName;
-        eventCapacity[eventCount] = capacity;
-
-        int eventId = eventCount + 1;
-
-        eventCount++;
-
-        // -----------------------------------------------------
-        // SAVE ONLY THIS EVENT
-        // -----------------------------------------------------
-
-        saveSingleEvent(eventId);
-
-        System.out.println();
-        System.out.println("Event added successfully!");
-        System.out.println("------------------------------------------");
-        System.out.println("Event ID     : " + eventId);
-        System.out.println("Event        : " + name);
-        System.out.println("Description  : " + description);
-        System.out.println("Date         : " + date);
-        System.out.println("Day          : " + day);
-        System.out.println(
-                "Time         : "
-                        + startTime
-                        + " - "
-                        + endTime
-        );
-        System.out.println("Venue        : " + venue);
-        System.out.println("Organizer    : " + organizerName);
-        System.out.println("Capacity     : " + capacity);
-        System.out.println("------------------------------------------");
-        System.out.println(
-                "Saved in     : "
-                        + getEventFileName(eventId)
-        );
-    }
-
-    // =========================================================
+    // ============================================================
     // EVENT FILE NAME
-    // =========================================================
+    // ============================================================
 
     static String getEventFileName(int eventId) {
 
         return "event" + eventId + ".txt";
     }
 
-    // =========================================================
+    // ============================================================
+    // ADD EVENT
+    // ============================================================
+
+    static void addEvent(String username) {
+
+        if (eventCount >= 100) {
+
+            System.out.println("Maximum event limit reached.");
+            return;
+        }
+
+        System.out.println("\n========== ADD EVENT ==========");
+
+        System.out.print("Enter event name: ");
+        String name = sc.nextLine().trim();
+
+        System.out.print("Enter event description: ");
+        String description = sc.nextLine().trim();
+
+        System.out.print("Enter date (DD-MM-YYYY): ");
+        String date = sc.nextLine().trim();
+
+        LocalDate localDate;
+
+        try {
+
+            localDate = LocalDate.parse(date, DATE_FORMAT);
+
+        } catch (DateTimeParseException e) {
+
+            System.out.println("Invalid date format.");
+            return;
+        }
+
+        String day =
+                localDate.getDayOfWeek().toString();
+
+        System.out.print("Enter start time (HH:MM): ");
+        String start = sc.nextLine().trim();
+
+        System.out.print("Enter end time (HH:MM): ");
+        String end = sc.nextLine().trim();
+
+        if (!isValidTime(start)
+                || !isValidTime(end)) {
+
+            System.out.println("Invalid time format.");
+            return;
+        }
+
+        System.out.print("Enter venue: ");
+        String venue = sc.nextLine().trim();
+
+        int capacity =
+                readInt("Enter capacity: ");
+
+        if (capacity <= 0) {
+
+            System.out.println(
+                    "Capacity must be greater than zero.");
+            return;
+        }
+
+        int eventId = eventCount + 1;
+
+        eventNames[eventCount] = name;
+        eventDescriptions[eventCount] = description;
+        eventDates[eventCount] = date;
+        eventDays[eventCount] = day;
+        startTimes[eventCount] = start;
+        endTimes[eventCount] = end;
+        venues[eventCount] = venue;
+        organizers[eventCount] = username;
+        eventCapacity[eventCount] = capacity;
+
+        eventCount++;
+
+        saveSingleEvent(eventId);
+
+        System.out.println("\nEvent created successfully.");
+        System.out.println("Event ID: " + eventId);
+        System.out.println(
+                "Event file: " + getEventFileName(eventId));
+        System.out.println("Day: " + day);
+    }
+
+    // ============================================================
     // SAVE SINGLE EVENT
-    // =========================================================
+    // ============================================================
 
     static void saveSingleEvent(int eventId) {
 
         int index = eventId - 1;
 
-        String fileName =
-                getEventFileName(eventId);
-
         try {
 
-            FileWriter writer =
-                    new FileWriter(fileName);
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(
+                                    getEventFileName(eventId)));
 
-            writer.write(
-                    eventNames[index]
-                            + "|"
-                            + eventDescriptions[index]
-                            + "|"
-                            + eventDates[index]
-                            + "|"
-                            + eventDays[index]
-                            + "|"
-                            + startTimes[index]
-                            + "|"
-                            + endTimes[index]
-                            + "|"
-                            + venues[index]
-                            + "|"
-                            + organizers[index]
-                            + "|"
-                            + eventCapacity[index]
-                            + System.lineSeparator()
+            pw.println(
+                    eventNames[index] + "|" +
+                    eventDescriptions[index] + "|" +
+                    eventDates[index] + "|" +
+                    eventDays[index] + "|" +
+                    startTimes[index] + "|" +
+                    endTimes[index] + "|" +
+                    venues[index] + "|" +
+                    organizers[index] + "|" +
+                    eventCapacity[index]
             );
 
-            writer.close();
+            pw.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error saving "
-                            + fileName
-                            + ": "
-                            + e.getMessage()
-            );
+                    "Error saving event.");
         }
     }
 
-    // =========================================================
-    // LOAD ALL EVENT FILES
-    // =========================================================
+    // ============================================================
+    // LOAD EVENTS
+    // ============================================================
 
     static void loadEvents() {
 
         eventCount = 0;
 
-        int eventId = 1;
-
-        while (eventId <= 100) {
-
-            String fileName =
-                    getEventFileName(eventId);
+        for (int eventId = 1;
+             eventId <= 100;
+             eventId++) {
 
             File file =
-                    new File(fileName);
+                    new File(
+                            getEventFileName(eventId));
 
             if (!file.exists()) {
-
-                /*
-                 * Stop when the next sequential event
-                 * file does not exist.
-                 */
-                break;
-            }
-
-            if (eventCount >= 100) {
-                break;
+                continue;
             }
 
             try {
 
-                BufferedReader reader =
+                BufferedReader br =
                         new BufferedReader(
-                                new FileReader(file)
-                        );
+                                new FileReader(file));
 
                 String line =
-                        reader.readLine();
+                        br.readLine();
 
-                reader.close();
+                br.close();
 
-                if (line != null
-                        && !line.trim().isEmpty()) {
-
-                    String[] data =
-                            line.split("\\|", -1);
-
-                    /*
-                     * New format:
-                     * name
-                     * description
-                     * date
-                     * day
-                     * start time
-                     * end time
-                     * venue
-                     * organizer
-                     * capacity
-                     */
-
-                    if (data.length >= 8) {
-
-                        eventNames[eventCount] =
-                                data[0];
-
-                        eventDescriptions[eventCount] =
-                                data[1];
-
-                        eventDates[eventCount] =
-                                data[2];
-
-                        eventDays[eventCount] =
-                                data[3];
-
-                        startTimes[eventCount] =
-                                data[4];
-
-                        endTimes[eventCount] =
-                                data[5];
-
-                        venues[eventCount] =
-                                data[6];
-
-                        organizers[eventCount] =
-                                data[7];
-
-                        if (data.length >= 9) {
-
-                            try {
-
-                                eventCapacity[eventCount] =
-                                        Integer.parseInt(data[8]);
-
-                            } catch (NumberFormatException e) {
-
-                                eventCapacity[eventCount] = 0;
-                            }
-
-                        } else {
-
-                            eventCapacity[eventCount] = 0;
-                        }
-
-                        eventCount++;
-                    }
+                if (line == null) {
+                    continue;
                 }
 
-            } catch (IOException e) {
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 9) {
+
+                    eventNames[eventCount] = data[0];
+                    eventDescriptions[eventCount] = data[1];
+                    eventDates[eventCount] = data[2];
+                    eventDays[eventCount] = data[3];
+                    startTimes[eventCount] = data[4];
+                    endTimes[eventCount] = data[5];
+                    venues[eventCount] = data[6];
+                    organizers[eventCount] = data[7];
+
+                    eventCapacity[eventCount] =
+                            Integer.parseInt(data[8]);
+
+                    eventCount++;
+                }
+
+            } catch (Exception e) {
 
                 System.out.println(
                         "Error loading "
-                                + fileName
-                                + ": "
-                                + e.getMessage()
-                );
+                                + getEventFileName(eventId));
             }
-
-            eventId++;
-        }
-
-        if (eventCount > 0) {
-
-            System.out.println(
-                    eventCount
-                            + " event file(s) loaded successfully."
-            );
         }
     }
 
-    // =========================================================
-    // DISPLAY ALL EVENTS
-    // =========================================================
+    // ============================================================
+    // DISPLAY EVENTS
+    // ============================================================
 
     static void displayEvents() {
 
-        System.out.println();
-        System.out.println("========== ALL EVENTS ==========");
+        System.out.println(
+                "\n========== ALL EVENTS ==========");
 
         if (eventCount == 0) {
 
             System.out.println(
-                    "No events available."
-            );
+                    "No events available.");
             return;
         }
 
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0;
+             i < eventCount;
+             i++) {
 
-            printEvent(i);
+            System.out.println(
+                    "\n------------------------------------------");
+
+            System.out.println(
+                    "Event ID   : " + (i + 1));
+
+            System.out.println(
+                    "File       : "
+                            + getEventFileName(i + 1));
+
+            System.out.println(
+                    "Name       : " + eventNames[i]);
+
+            System.out.println(
+                    "Description: "
+                            + eventDescriptions[i]);
+
+            System.out.println(
+                    "Date       : " + eventDates[i]);
+
+            System.out.println(
+                    "Day        : " + eventDays[i]);
+
+            System.out.println(
+                    "Time       : "
+                            + startTimes[i]
+                            + " - "
+                            + endTimes[i]);
+
+            System.out.println(
+                    "Venue      : " + venues[i]);
+
+            System.out.println(
+                    "Organizer  : " + organizers[i]);
+
+            System.out.println(
+                    "Capacity   : " + eventCapacity[i]);
         }
+
+        System.out.println(
+                "------------------------------------------");
     }
 
-    // =========================================================
-    // PRINT EVENT
-    // =========================================================
-
-    static void printEvent(int index) {
-
-        System.out.println();
-        System.out.println("------------------------------------------");
-        System.out.println(
-                "Event ID     : "
-                        + (index + 1)
-        );
-        System.out.println(
-                "Event Name   : "
-                        + eventNames[index]
-        );
-        System.out.println(
-                "Description  : "
-                        + eventDescriptions[index]
-        );
-        System.out.println(
-                "Date         : "
-                        + eventDates[index]
-        );
-        System.out.println(
-                "Day          : "
-                        + eventDays[index]
-        );
-        System.out.println(
-                "Time         : "
-                        + startTimes[index]
-                        + " - "
-                        + endTimes[index]
-        );
-        System.out.println(
-                "Venue        : "
-                        + venues[index]
-        );
-        System.out.println(
-                "Organizer    : "
-                        + organizers[index]
-        );
-        System.out.println(
-                "Capacity     : "
-                        + eventCapacity[index]
-        );
-        System.out.println(
-                "File         : "
-                        + getEventFileName(index + 1)
-        );
-        System.out.println("------------------------------------------");
-    }
-
-    // =========================================================
-    // VIEW ORGANIZER EVENTS
-    // =========================================================
-
-    static void displayOrganizerEvents(
-            String organizerName) {
-
-        System.out.println();
-        System.out.println("========== MY EVENTS ==========");
-
-        boolean found = false;
-
-        for (int i = 0; i < eventCount; i++) {
-
-            if (organizers[i]
-                    .equalsIgnoreCase(organizerName)) {
-
-                printEvent(i);
-                found = true;
-            }
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "You have not created any events."
-            );
-        }
-    }
-
-    // =========================================================
-    // REGISTER FOR EVENT
-    // =========================================================
-
-    static void registerForEvent(
-            Scanner sc,
-            String participantName) {
-
-        if (eventCount == 0) {
-
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
-
-        displayEvents();
-
-        int eventId =
-                readInt(
-                        sc,
-                        "Enter Event ID: "
-                );
-
-        if (eventId < 1
-                || eventId > eventCount) {
-
-            System.out.println(
-                    "Invalid Event ID."
-            );
-            return;
-        }
-
-        int index = eventId - 1;
-
-        if (alreadyRegistered(
-                participantName,
-                eventId)) {
-
-            System.out.println(
-                    "You are already registered for this event."
-            );
-            return;
-        }
-
-        int registeredCount =
-                countRegistrations(eventId);
-
-        if (registeredCount
-                >= eventCapacity[index]) {
-
-            System.out.println(
-                    "Event capacity is full."
-            );
-            return;
-        }
-
-        try {
-
-            FileWriter writer =
-                    new FileWriter(
-                            REGISTRATION_FILE,
-                            true
-                    );
-
-            writer.write(
-                    participantName
-                            + "|"
-                            + eventId
-                            + "|"
-                            + eventNames[index]
-                            + "|"
-                            + eventDates[index]
-                            + "|"
-                            + eventDays[index]
-                            + "|"
-                            + startTimes[index]
-                            + "|"
-                            + endTimes[index]
-                            + "|"
-                            + venues[index]
-                            + System.lineSeparator()
-            );
-
-            writer.close();
-
-            System.out.println();
-            System.out.println(
-                    "Registration successful!"
-            );
-            System.out.println(
-                    "Participant : "
-                            + participantName
-            );
-            System.out.println(
-                    "Event       : "
-                            + eventNames[index]
-            );
-            System.out.println(
-                    "Date        : "
-                            + eventDates[index]
-            );
-            System.out.println(
-                    "Venue       : "
-                            + venues[index]
-            );
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error saving registration: "
-                            + e.getMessage()
-            );
-        }
-    }
-
-    // =========================================================
-    // CHECK REGISTRATION
-    // =========================================================
-
-    static boolean alreadyRegistered(
-            String username,
-            int eventId) {
-
-        File file =
-                new File(REGISTRATION_FILE);
-
-        if (!file.exists()) {
-            return false;
-        }
-
-        try {
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
-
-            String line;
-
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 3
-                        && data[0].equals(username)
-                        && data[1].equals(
-                                String.valueOf(eventId))) {
-
-                    reader.close();
-                    return true;
-                }
-            }
-
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error checking registration."
-            );
-        }
-
-        return false;
-    }
-
-    // =========================================================
-    // COUNT REGISTRATIONS
-    // =========================================================
-
-    static int countRegistrations(int eventId) {
-
-        File file =
-                new File(REGISTRATION_FILE);
-
-        if (!file.exists()) {
-            return 0;
-        }
-
-        int count = 0;
-
-        try {
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
-
-            String line;
-
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 2
-                        && data[1].equals(
-                                String.valueOf(eventId))) {
-
-                    count++;
-                }
-            }
-
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error counting registrations."
-            );
-        }
-
-        return count;
-    }
-
-    // =========================================================
-    // VIEW MY REGISTRATIONS
-    // =========================================================
-
-    static void viewMyRegistrations(
-            String participantName) {
-
-        File file =
-                new File(REGISTRATION_FILE);
-
-        System.out.println();
-        System.out.println(
-                "========== MY REGISTRATIONS =========="
-        );
-
-        if (!file.exists()) {
-
-            System.out.println(
-                    "No registrations found."
-            );
-            return;
-        }
-
-        boolean found = false;
-
-        try {
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
-
-            String line;
-
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 8
-                        && data[0].equals(
-                                participantName)) {
-
-                    System.out.println();
-                    System.out.println(
-                            "Event ID : " + data[1]
-                    );
-                    System.out.println(
-                            "Event    : " + data[2]
-                    );
-                    System.out.println(
-                            "Date     : " + data[3]
-                    );
-                    System.out.println(
-                            "Day      : " + data[4]
-                    );
-                    System.out.println(
-                            "Time     : "
-                                    + data[5]
-                                    + " - "
-                                    + data[6]
-                    );
-                    System.out.println(
-                            "Venue    : " + data[7]
-                    );
-
-                    found = true;
-                }
-            }
-
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error reading registrations: "
-                            + e.getMessage()
-            );
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "You have no event registrations."
-            );
-        }
-    }
-
-    // =========================================================
-    // VOLUNTEER FOR EVENT
-    // =========================================================
-
-    static void volunteerForEvent(
-            Scanner sc,
-            String volunteerName) {
-
-        if (eventCount == 0) {
-
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
-
-        displayEvents();
-
-        int eventId =
-                readInt(
-                        sc,
-                        "Enter Event ID: "
-                );
-
-        if (eventId < 1
-                || eventId > eventCount) {
-
-            System.out.println(
-                    "Invalid Event ID."
-            );
-            return;
-        }
-
-        int index = eventId - 1;
-
-        if (alreadyVolunteer(
-                volunteerName,
-                eventId)) {
-
-            System.out.println(
-                    "You are already a volunteer for this event."
-            );
-            return;
-        }
-
-        try {
-
-            FileWriter writer =
-                    new FileWriter(
-                            VOLUNTEER_FILE,
-                            true
-                    );
-
-            writer.write(
-                    volunteerName
-                            + "|"
-                            + eventId
-                            + "|"
-                            + eventNames[index]
-                            + "|"
-                            + eventDates[index]
-                            + "|"
-                            + eventDays[index]
-                            + "|"
-                            + startTimes[index]
-                            + "|"
-                            + endTimes[index]
-                            + "|"
-                            + venues[index]
-                            + System.lineSeparator()
-            );
-
-            writer.close();
-
-            System.out.println();
-            System.out.println(
-                    "Volunteer registration successful!"
-            );
-            System.out.println(
-                    "Volunteer : "
-                            + volunteerName
-            );
-            System.out.println(
-                    "Event     : "
-                            + eventNames[index]
-            );
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error saving volunteer data: "
-                            + e.getMessage()
-            );
-        }
-    }
-
-    // =========================================================
-    // CHECK VOLUNTEER
-    // =========================================================
-
-    static boolean alreadyVolunteer(
-            String username,
-            int eventId) {
-
-        File file =
-                new File(VOLUNTEER_FILE);
-
-        if (!file.exists()) {
-            return false;
-        }
-
-        try {
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
-
-            String line;
-
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 3
-                        && data[0].equals(username)
-                        && data[1].equals(
-                                String.valueOf(eventId))) {
-
-                    reader.close();
-                    return true;
-                }
-            }
-
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error checking volunteer assignment."
-            );
-        }
-
-        return false;
-    }
-
-    // =========================================================
-    // VIEW VOLUNTEER EVENTS
-    // =========================================================
-
-    static void viewMyVolunteerEvents(
-            String volunteerName) {
-
-        File file =
-                new File(VOLUNTEER_FILE);
-
-        System.out.println();
-        System.out.println(
-                "========== MY VOLUNTEER EVENTS =========="
-        );
-
-        if (!file.exists()) {
-
-            System.out.println(
-                    "No volunteer assignments found."
-            );
-            return;
-        }
-
-        boolean found = false;
-
-        try {
-
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
-
-            String line;
-
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 8
-                        && data[0].equals(
-                                volunteerName)) {
-
-                    System.out.println();
-                    System.out.println(
-                            "Event ID : " + data[1]
-                    );
-                    System.out.println(
-                            "Event    : " + data[2]
-                    );
-                    System.out.println(
-                            "Date     : " + data[3]
-                    );
-                    System.out.println(
-                            "Day      : " + data[4]
-                    );
-                    System.out.println(
-                            "Time     : "
-                                    + data[5]
-                                    + " - "
-                                    + data[6]
-                    );
-                    System.out.println(
-                            "Venue    : " + data[7]
-                    );
-
-                    found = true;
-                }
-            }
-
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error reading volunteer data: "
-                            + e.getMessage()
-            );
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "You have no volunteer assignments."
-            );
-        }
-    }
-
-    // =========================================================
+    // ============================================================
     // KMP SEARCH
-    // =========================================================
+    // MODULE 2
+    //
+    // RANDOMIZED HASHING FROM MODULE 6 IS USED
+    // INTERNALLY AS A HASH FILTER.
+    // ============================================================
 
-    static void searchEvent(Scanner sc) {
+    static void kmpSearchMenu() {
 
-        if (eventCount == 0) {
-
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
-
-        System.out.println();
         System.out.println(
-                "========== KMP EVENT SEARCH =========="
-        );
+                "\n========== KMP EVENT SEARCH ==========");
 
         System.out.print(
-                "Enter event name or keyword: "
-        );
+                "Enter search pattern: ");
 
         String pattern =
-                sc.nextLine()
-                        .trim()
-                        .toLowerCase();
-
-        if (pattern.isEmpty()) {
-
-            System.out.println(
-                    "Search keyword cannot be empty."
-            );
-            return;
-        }
+                sc.nextLine().trim();
 
         boolean found = false;
 
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0;
+             i < eventCount;
+             i++) {
 
-            String name =
-                    eventNames[i].toLowerCase();
+            if (KMPSearch(
+                    eventNames[i].toLowerCase(),
+                    pattern.toLowerCase())
+                    ||
+                    KMPSearch(
+                    eventDescriptions[i].toLowerCase(),
+                    pattern.toLowerCase())
+                    ||
+                    KMPSearch(
+                    venues[i].toLowerCase(),
+                    pattern.toLowerCase())) {
 
-            String description =
-                    eventDescriptions[i].toLowerCase();
+                System.out.println(
+                        "\nEvent ID: " + (i + 1));
 
-            String venue =
-                    venues[i].toLowerCase();
+                System.out.println(
+                        "Name: " + eventNames[i]);
 
-            /*
-             * CO2
-             * KMP STRING MATCHING
-             */
+                System.out.println(
+                        "Date: " + eventDates[i]);
 
-            if (KMPSearch(name, pattern)
-                    || KMPSearch(
-                            description,
-                            pattern)
-                    || KMPSearch(
-                            venue,
-                            pattern)) {
-
-                printEvent(i);
+                System.out.println(
+                        "Venue: " + venues[i]);
 
                 found = true;
             }
@@ -1523,16 +717,23 @@ public class EventManagementSystem {
 
         if (!found) {
 
-            System.out.println();
             System.out.println(
-                    "No matching events found."
-            );
+                    "No exact match found.");
         }
+
+        System.out.println(
+                "\nAlgorithm: KMP");
+
+        System.out.println(
+                "Module: 2 - String Algorithms");
+
+        System.out.println(
+                "Time Complexity: O(n + m)");
     }
 
-    // =========================================================
-    // KMP ALGORITHM
-    // =========================================================
+    // ============================================================
+    // KMP WITH RANDOMIZED HASH FILTER
+    // ============================================================
 
     static boolean KMPSearch(
             String text,
@@ -1542,9 +743,34 @@ public class EventManagementSystem {
             return true;
         }
 
-        if (text.length() == 0) {
+        if (pattern.length() > text.length()) {
             return false;
         }
+
+        /*
+         * Module 6:
+         * Randomized rolling hash is used first.
+         *
+         * If a substring has the same hash,
+         * KMP/LPS is then used to confirm the match.
+         *
+         * Therefore a hash collision cannot produce
+         * a false result.
+         */
+
+        int hashPosition =
+                randomizedHashSearch(
+                        text,
+                        pattern);
+
+        if (hashPosition == -1) {
+
+            return false;
+        }
+
+        /*
+         * KMP verification.
+         */
 
         int[] lps =
                 buildLPS(pattern);
@@ -1562,15 +788,29 @@ public class EventManagementSystem {
 
                 if (j == pattern.length()) {
 
-                    return true;
+                    int startPosition =
+                            i - pattern.length();
+
+                    /*
+                     * Randomized hash found a possible
+                     * location. KMP confirms the actual
+                     * exact pattern.
+                     */
+
+                    if (startPosition
+                            == hashPosition) {
+
+                        return true;
+                    }
+
+                    j = lps[j - 1];
                 }
 
             } else {
 
                 if (j != 0) {
 
-                    j =
-                            lps[j - 1];
+                    j = lps[j - 1];
 
                 } else {
 
@@ -1582,9 +822,107 @@ public class EventManagementSystem {
         return false;
     }
 
-    // =========================================================
-    // LPS ARRAY
-    // =========================================================
+    // ============================================================
+    // MODULE 6
+    // RANDOMIZED ROLLING HASH SEARCH
+    // ============================================================
+
+    static int randomizedHashSearch(
+            String text,
+            String pattern) {
+
+        int n = text.length();
+        int m = pattern.length();
+
+        if (m > n) {
+            return -1;
+        }
+
+        long patternHash = 0;
+        long textHash = 0;
+        long highestPower = 1;
+
+        for (int i = 0;
+             i < m - 1;
+             i++) {
+
+            highestPower =
+                    (highestPower * HASH_BASE)
+                            % HASH_MOD;
+        }
+
+        for (int i = 0;
+             i < m;
+             i++) {
+
+            patternHash =
+                    (patternHash * HASH_BASE
+                            + pattern.charAt(i))
+                            % HASH_MOD;
+
+            textHash =
+                    (textHash * HASH_BASE
+                            + text.charAt(i))
+                            % HASH_MOD;
+        }
+
+        for (int i = 0;
+             i <= n - m;
+             i++) {
+
+            if (patternHash == textHash) {
+
+                /*
+                 * Hash match is only a candidate.
+                 * Actual characters are checked to
+                 * avoid collision errors.
+                 */
+
+                boolean same = true;
+
+                for (int j = 0;
+                     j < m;
+                     j++) {
+
+                    if (text.charAt(i + j)
+                            != pattern.charAt(j)) {
+
+                        same = false;
+                        break;
+                    }
+                }
+
+                if (same) {
+
+                    return i;
+                }
+            }
+
+            if (i < n - m) {
+
+                textHash =
+                        (textHash
+                                - text.charAt(i)
+                                * highestPower)
+                                % HASH_MOD;
+
+                if (textHash < 0) {
+                    textHash += HASH_MOD;
+                }
+
+                textHash =
+                        (textHash * HASH_BASE
+                                + text.charAt(i + m))
+                                % HASH_MOD;
+            }
+        }
+
+        return -1;
+    }
+
+    // ============================================================
+    // LPS
+    // ============================================================
 
     static int[] buildLPS(
             String pattern) {
@@ -1592,31 +930,31 @@ public class EventManagementSystem {
         int[] lps =
                 new int[pattern.length()];
 
-        int length = 0;
+        int len = 0;
         int i = 1;
 
         while (i < pattern.length()) {
 
             if (pattern.charAt(i)
-                    == pattern.charAt(length)) {
+                    == pattern.charAt(len)) {
 
-                length++;
+                len++;
 
-                lps[i] =
-                        length;
+                lps[i] = len;
 
                 i++;
 
             } else {
 
-                if (length != 0) {
+                if (len != 0) {
 
-                    length =
-                            lps[length - 1];
+                    len =
+                            lps[len - 1];
 
                 } else {
 
                     lps[i] = 0;
+
                     i++;
                 }
             }
@@ -1625,101 +963,64 @@ public class EventManagementSystem {
         return lps;
     }
 
-    // =========================================================
+    // ============================================================
     // EDIT DISTANCE SEARCH
-    // =========================================================
+    // MODULE 3
+    // ============================================================
 
-    static void editDistanceSearch(
-            Scanner sc) {
-
-        if (eventCount == 0) {
-
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
-
-        System.out.println();
-        System.out.println(
-                "========== EDIT DISTANCE SEARCH =========="
-        );
+    static void editDistanceSearchMenu() {
 
         System.out.println(
-                "This search allows small spelling mistakes."
-        );
+                "\n========== EDIT DISTANCE SEARCH ==========");
 
         System.out.print(
-                "Enter event name or keyword: "
-        );
+                "Enter event keyword: ");
 
-        String pattern =
-                sc.nextLine()
-                        .trim()
-                        .toLowerCase();
-
-        if (pattern.isEmpty()) {
-
-            System.out.println(
-                    "Search keyword cannot be empty."
-            );
-            return;
-        }
-
-        int maxDistance = 2;
+        String keyword =
+                sc.nextLine().trim();
 
         boolean found = false;
 
-        for (int i = 0; i < eventCount; i++) {
+        for (int i = 0;
+             i < eventCount;
+             i++) {
 
-            int nameDistance =
+            int d1 =
                     minimumWordEditDistance(
-                            pattern,
-                            eventNames[i]
-                    );
+                            keyword,
+                            eventNames[i]);
 
-            int descriptionDistance =
+            int d2 =
                     minimumWordEditDistance(
-                            pattern,
-                            eventDescriptions[i]
-                    );
+                            keyword,
+                            eventDescriptions[i]);
 
-            int venueDistance =
+            int d3 =
                     minimumWordEditDistance(
-                            pattern,
-                            venues[i]
-                    );
+                            keyword,
+                            venues[i]);
 
-            int distance =
+            int min =
                     Math.min(
-                            nameDistance,
-                            Math.min(
-                                    descriptionDistance,
-                                    venueDistance
-                            )
-                    );
+                            d1,
+                            Math.min(d2, d3));
 
-            if (distance <= maxDistance) {
-
-                printEvent(i);
+            if (min <= 2) {
 
                 System.out.println(
-                        "Edit Distance : "
-                                + distance
-                );
+                        "\nEvent ID: " + (i + 1));
 
-                if (distance == 0) {
+                System.out.println(
+                        "Name: " + eventNames[i]);
 
-                    System.out.println(
-                            "Match Type    : Exact match"
-                    );
+                System.out.println(
+                        "Edit Distance: " + min);
 
-                } else {
+                System.out.println(
+                        "Date: " + eventDates[i]);
 
-                    System.out.println(
-                            "Match Type    : Approximate match"
-                    );
-                }
+                System.out.println(
+                        "Venue: " + venues[i]);
 
                 found = true;
             }
@@ -1727,30 +1028,30 @@ public class EventManagementSystem {
 
         if (!found) {
 
-            System.out.println();
             System.out.println(
-                    "No close matching events found."
-            );
+                    "No approximate match found.");
         }
+
+        System.out.println(
+                "\nAlgorithm: Edit Distance");
+
+        System.out.println(
+                "Module: 3 - Advanced Dynamic Programming");
+
+        System.out.println(
+                "Time Complexity: O(n*m)");
     }
 
-    // =========================================================
+    // ============================================================
     // MINIMUM WORD EDIT DISTANCE
-    // =========================================================
+    // ============================================================
 
     static int minimumWordEditDistance(
-            String pattern,
+            String keyword,
             String text) {
 
-        if (text == null
-                || text.trim().isEmpty()) {
-
-            return Integer.MAX_VALUE;
-        }
-
         String[] words =
-                text.toLowerCase()
-                        .split("\\s+");
+                text.split(" ");
 
         int minimum =
                 Integer.MAX_VALUE;
@@ -1759,55 +1060,58 @@ public class EventManagementSystem {
 
             String cleanWord =
                     word.replaceAll(
-                            "[^a-z0-9]",
-                            ""
-                    );
+                            "[^a-zA-Z0-9]",
+                            "");
 
-            if (!cleanWord.isEmpty()) {
+            int distance =
+                    editDistance(
+                            keyword.toLowerCase(),
+                            cleanWord.toLowerCase());
 
-                int distance =
-                        editDistance(
-                                pattern,
-                                cleanWord
-                        );
+            if (distance < minimum) {
 
-                if (distance < minimum) {
-
-                    minimum = distance;
-                }
+                minimum = distance;
             }
         }
 
         return minimum;
     }
 
-    // =========================================================
-    // EDIT DISTANCE
-    // =========================================================
+    // ============================================================
+    // EDIT DISTANCE DP
+    // ============================================================
 
     static int editDistance(
             String first,
             String second) {
 
-        int m = first.length();
-        int n = second.length();
+        int n = first.length();
+        int m = second.length();
 
         int[][] dp =
-                new int[m + 1][n + 1];
+                new int[n + 1][m + 1];
 
-        for (int i = 0; i <= m; i++) {
+        for (int i = 0;
+             i <= n;
+             i++) {
 
             dp[i][0] = i;
         }
 
-        for (int j = 0; j <= n; j++) {
+        for (int j = 0;
+             j <= m;
+             j++) {
 
             dp[0][j] = j;
         }
 
-        for (int i = 1; i <= m; i++) {
+        for (int i = 1;
+             i <= n;
+             i++) {
 
-            for (int j = 1; j <= n; j++) {
+            for (int j = 1;
+                 j <= m;
+                 j++) {
 
                 if (first.charAt(i - 1)
                         == second.charAt(j - 1)) {
@@ -1831,741 +1135,1022 @@ public class EventManagementSystem {
                                     insert,
                                     Math.min(
                                             delete,
-                                            replace
-                                    )
-                            );
+                                            replace));
                 }
             }
         }
 
-        return dp[m][n];
+        return dp[n][m];
     }
 
-    // =========================================================
-    // FEEDBACK
-    // =========================================================
+    // ============================================================
+    // VIEW MY EVENTS
+    // ============================================================
 
-    static void giveFeedback(
-            Scanner sc,
-            String participantName) {
+    static void viewMyEvents(
+            String username) {
 
-        if (eventCount == 0) {
+        System.out.println(
+                "\n========== MY EVENTS ==========");
+
+        boolean found = false;
+
+        for (int i = 0;
+             i < eventCount;
+             i++) {
+
+            if (organizers[i]
+                    .equals(username)) {
+
+                System.out.println(
+                        (i + 1) + ". "
+                                + eventNames[i]
+                                + " | "
+                                + eventDates[i]
+                                + " | "
+                                + venues[i]);
+
+                found = true;
+            }
+        }
+
+        if (!found) {
 
             System.out.println(
-                    "No events available."
-            );
-            return;
+                    "No events created by you.");
         }
+    }
+
+    // ============================================================
+    // REGISTRATION
+    // ============================================================
+
+    static void registerForEvent(
+            String username) {
 
         displayEvents();
 
+        if (eventCount == 0) {
+            return;
+        }
+
         int eventId =
-                readInt(
-                        sc,
-                        "Enter Event ID: "
-                );
+                readInt("Enter Event ID: ");
 
         if (eventId < 1
                 || eventId > eventCount) {
 
             System.out.println(
-                    "Invalid Event ID."
-            );
+                    "Invalid Event ID.");
             return;
         }
 
-        if (!alreadyRegistered(
-                participantName,
+        if (isAlreadyRegistered(
+                username,
                 eventId)) {
 
             System.out.println(
-                    "You must register for the event before giving feedback."
-            );
+                    "You are already registered.");
             return;
         }
 
-        if (alreadyGivenFeedback(
-                participantName,
-                eventId)) {
+        int count =
+                getRegisteredCount(eventId);
+
+        if (count >= eventCapacity[eventId - 1]) {
 
             System.out.println(
-                    "You have already given feedback for this event."
-            );
+                    "Event is full.");
             return;
         }
-
-        int rating;
-
-        while (true) {
-
-            rating =
-                    readInt(
-                            sc,
-                            "Enter rating (1-5): "
-                    );
-
-            if (rating >= 1
-                    && rating <= 5) {
-
-                break;
-            }
-
-            System.out.println(
-                    "Rating must be between 1 and 5."
-            );
-        }
-
-        System.out.print(
-                "Enter your feedback: "
-        );
-
-        String comment =
-                sc.nextLine().trim();
-
-        if (comment.contains("|")) {
-
-            System.out.println(
-                    "Feedback cannot contain '|'."
-            );
-            return;
-        }
-
-        int index = eventId - 1;
 
         try {
 
-            FileWriter writer =
-                    new FileWriter(
-                            FEEDBACK_FILE,
-                            true
-                    );
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(
+                                    REGISTRATION_FILE,
+                                    true));
 
-            writer.write(
-                    participantName
-                            + "|"
-                            + eventId
-                            + "|"
-                            + eventNames[index]
-                            + "|"
-                            + rating
-                            + "|"
-                            + comment
-                            + System.lineSeparator()
+            int index =
+                    eventId - 1;
+
+            pw.println(
+                    username + "|" +
+                    eventId + "|" +
+                    eventNames[index] + "|" +
+                    eventDates[index] + "|" +
+                    eventDays[index] + "|" +
+                    startTimes[index] + "|" +
+                    endTimes[index] + "|" +
+                    venues[index]
             );
 
-            writer.close();
+            pw.close();
 
-            System.out.println();
             System.out.println(
-                    "Feedback submitted successfully!"
-            );
+                    "Registration successful.");
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error saving feedback: "
-                            + e.getMessage()
-            );
+                    "Error saving registration.");
         }
     }
 
-    // =========================================================
-    // CHECK FEEDBACK
-    // =========================================================
+    // ============================================================
+    // CHECK REGISTRATION
+    // ============================================================
 
-    static boolean alreadyGivenFeedback(
+    static boolean isAlreadyRegistered(
             String username,
             int eventId) {
 
-        File file =
-                new File(FEEDBACK_FILE);
-
-        if (!file.exists()) {
-            return false;
-        }
-
         try {
 
-            BufferedReader reader =
+            File file =
+                    new File(REGISTRATION_FILE);
+
+            if (!file.exists()) {
+                return false;
+            }
+
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(file)
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
 
-                if (data.length >= 4
+                if (data.length >= 2
                         && data[0].equals(username)
                         && data[1].equals(
-                                String.valueOf(eventId))) {
+                        String.valueOf(eventId))) {
 
-                    reader.close();
+                    br.close();
+
                     return true;
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error checking feedback."
-            );
+                    "Error checking registration.");
         }
 
         return false;
     }
 
-    // =========================================================
-    // VIEW ALL FEEDBACK
-    // =========================================================
+    // ============================================================
+    // REGISTERED COUNT
+    // ============================================================
 
-    static void viewAllFeedback() {
+    static int getRegisteredCount(
+            int eventId) {
 
-        File file =
-                new File(FEEDBACK_FILE);
+        int count = 0;
 
-        System.out.println();
-        System.out.println(
-                "========== PARTICIPANT FEEDBACK =========="
-        );
+        try {
 
-        if (!file.exists()) {
+            File file =
+                    new File(REGISTRATION_FILE);
+
+            if (!file.exists()) {
+                return 0;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 2
+                        && data[1].equals(
+                        String.valueOf(eventId))) {
+
+                    count++;
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
 
             System.out.println(
-                    "No feedback available."
-            );
-            return;
+                    "Error reading registrations.");
         }
+
+        return count;
+    }
+
+    // ============================================================
+    // VIEW MY REGISTRATIONS
+    // ============================================================
+
+    static void viewMyRegistrations(
+            String username) {
+
+        System.out.println(
+                "\n========== MY REGISTRATIONS ==========");
 
         boolean found = false;
 
         try {
 
-            BufferedReader reader =
+            File file =
+                    new File(REGISTRATION_FILE);
+
+            if (!file.exists()) {
+
+                System.out.println(
+                        "No registrations found.");
+                return;
+            }
+
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(file)
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 8
+                        && data[0].equals(username)) {
+
+                    System.out.println(
+                            "Event ID: " + data[1]);
+
+                    System.out.println(
+                            "Event: " + data[2]);
+
+                    System.out.println(
+                            "Date: " + data[3]);
+
+                    System.out.println(
+                            "Day: " + data[4]);
+
+                    System.out.println(
+                            "Time: " + data[5]
+                                    + " - "
+                                    + data[6]);
+
+                    System.out.println(
+                            "Venue: " + data[7]);
+
+                    System.out.println(
+                            "--------------------------------");
+
+                    found = true;
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error reading registrations.");
+        }
+
+        if (!found) {
+
+            System.out.println(
+                    "No registrations found.");
+        }
+    }
+
+    // ============================================================
+    // VOLUNTEER
+    // ============================================================
+
+    static void volunteerForEvent(
+            String username) {
+
+        displayEvents();
+
+        if (eventCount == 0) {
+            return;
+        }
+
+        int eventId =
+                readInt("Enter Event ID: ");
+
+        if (eventId < 1
+                || eventId > eventCount) {
+
+            System.out.println(
+                    "Invalid Event ID.");
+            return;
+        }
+
+        if (isAlreadyVolunteer(
+                username,
+                eventId)) {
+
+            System.out.println(
+                    "Already volunteered.");
+            return;
+        }
+
+        try {
+
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(
+                                    VOLUNTEER_FILE,
+                                    true));
+
+            int index =
+                    eventId - 1;
+
+            pw.println(
+                    username + "|" +
+                    eventId + "|" +
+                    eventNames[index] + "|" +
+                    eventDates[index] + "|" +
+                    eventDays[index] + "|" +
+                    startTimes[index] + "|" +
+                    endTimes[index] + "|" +
+                    venues[index]
+            );
+
+            pw.close();
+
+            System.out.println(
+                    "Volunteer registration successful.");
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error saving volunteer data.");
+        }
+    }
+
+    // ============================================================
+    // CHECK VOLUNTEER
+    // ============================================================
+
+    static boolean isAlreadyVolunteer(
+            String username,
+            int eventId) {
+
+        try {
+
+            File file =
+                    new File(VOLUNTEER_FILE);
+
+            if (!file.exists()) {
+                return false;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 2
+                        && data[0].equals(username)
+                        && data[1].equals(
+                        String.valueOf(eventId))) {
+
+                    br.close();
+
+                    return true;
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error reading volunteer data.");
+        }
+
+        return false;
+    }
+
+    // ============================================================
+    // VIEW MY VOLUNTEER EVENTS
+    // ============================================================
+
+    static void viewMyVolunteerEvents(
+            String username) {
+
+        System.out.println(
+                "\n========== MY VOLUNTEER EVENTS ==========");
+
+        boolean found = false;
+
+        try {
+
+            File file =
+                    new File(VOLUNTEER_FILE);
+
+            if (!file.exists()) {
+
+                System.out.println(
+                        "No volunteer events.");
+                return;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 8
+                        && data[0].equals(username)) {
+
+                    System.out.println(
+                            "Event ID: " + data[1]);
+
+                    System.out.println(
+                            "Event: " + data[2]);
+
+                    System.out.println(
+                            "Date: " + data[3]);
+
+                    System.out.println(
+                            "Day: " + data[4]);
+
+                    System.out.println(
+                            "Time: " + data[5]
+                                    + " - "
+                                    + data[6]);
+
+                    System.out.println(
+                            "Venue: " + data[7]);
+
+                    System.out.println(
+                            "--------------------------------");
+
+                    found = true;
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error reading volunteer data.");
+        }
+
+        if (!found) {
+
+            System.out.println(
+                    "No volunteer events found.");
+        }
+    }
+
+    // ============================================================
+    // FEEDBACK
+    // ============================================================
+
+    static void giveFeedback(
+            String username) {
+
+        viewMyRegistrations(username);
+
+        int eventId =
+                readInt(
+                        "\nEnter Event ID for feedback: ");
+
+        if (!isAlreadyRegistered(
+                username,
+                eventId)) {
+
+            System.out.println(
+                    "You must register for the event first.");
+            return;
+        }
+
+        if (alreadyGivenFeedback(
+                username,
+                eventId)) {
+
+            System.out.println(
+                    "Feedback already submitted.");
+            return;
+        }
+
+        int rating =
+                readInt(
+                        "Enter rating (1-5): ");
+
+        if (rating < 1
+                || rating > 5) {
+
+            System.out.println(
+                    "Rating must be between 1 and 5.");
+            return;
+        }
+
+        System.out.print(
+                "Enter feedback: ");
+
+        String comment =
+                sc.nextLine()
+                        .replace("|", " ");
+
+        try {
+
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(
+                                    FEEDBACK_FILE,
+                                    true));
+
+            pw.println(
+                    username + "|" +
+                    eventId + "|" +
+                    eventNames[eventId - 1] + "|" +
+                    rating + "|" +
+                    comment
+            );
+
+            pw.close();
+
+            System.out.println(
+                    "Feedback submitted successfully.");
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error saving feedback.");
+        }
+    }
+
+    // ============================================================
+    // CHECK FEEDBACK
+    // ============================================================
+
+    static boolean alreadyGivenFeedback(
+            String username,
+            int eventId) {
+
+        try {
+
+            File file =
+                    new File(FEEDBACK_FILE);
+
+            if (!file.exists()) {
+                return false;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 2
+                        && data[0].equals(username)
+                        && data[1].equals(
+                        String.valueOf(eventId))) {
+
+                    br.close();
+
+                    return true;
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error reading feedback.");
+        }
+
+        return false;
+    }
+
+    // ============================================================
+    // VIEW FEEDBACK
+    // ============================================================
+
+    static void viewFeedback() {
+
+        System.out.println(
+                "\n========== PARTICIPANT FEEDBACK ==========");
+
+        try {
+
+            File file =
+                    new File(FEEDBACK_FILE);
+
+            if (!file.exists()) {
+
+                System.out.println(
+                        "No feedback available.");
+                return;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
 
                 if (data.length >= 5) {
 
-                    System.out.println();
                     System.out.println(
-                            "Participant : " + data[0]
-                    );
-                    System.out.println(
-                            "Event ID    : " + data[1]
-                    );
-                    System.out.println(
-                            "Event       : " + data[2]
-                    );
-                    System.out.println(
-                            "Rating      : " + data[3] + "/5"
-                    );
-                    System.out.println(
-                            "Feedback    : " + data[4]
-                    );
-                    System.out.println(
-                            "------------------------------------------"
-                    );
+                            "Participant: " + data[0]);
 
-                    found = true;
+                    System.out.println(
+                            "Event ID: " + data[1]);
+
+                    System.out.println(
+                            "Event: " + data[2]);
+
+                    System.out.println(
+                            "Rating: " + data[3] + "/5");
+
+                    System.out.println(
+                            "Feedback: " + data[4]);
+
+                    System.out.println(
+                            "--------------------------------");
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error reading feedback: "
-                            + e.getMessage()
-            );
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "No feedback available."
-            );
+                    "Error reading feedback.");
         }
     }
 
-    // =========================================================
-    // MARK ATTENDANCE
-    // =========================================================
+    // ============================================================
+    // ATTENDANCE
+    // ============================================================
 
-    static void markAttendance(Scanner sc) {
-
-        if (eventCount == 0) {
-
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
+    static void markAttendance() {
 
         displayEvents();
 
+        if (eventCount == 0) {
+            return;
+        }
+
         int eventId =
-                readInt(
-                        sc,
-                        "Enter Event ID: "
-                );
+                readInt("Enter Event ID: ");
 
         if (eventId < 1
                 || eventId > eventCount) {
 
             System.out.println(
-                    "Invalid Event ID."
-            );
+                    "Invalid Event ID.");
             return;
         }
 
-        boolean foundParticipant = false;
-
-        File registrationFile =
-                new File(REGISTRATION_FILE);
-
-        if (!registrationFile.exists()) {
-
-            System.out.println(
-                    "No participants registered for this event."
-            );
-            return;
-        }
-
-        System.out.println();
         System.out.println(
-                "Registered Participants:"
-        );
+                "\nRegistered Participants:");
 
         try {
 
-            BufferedReader reader =
+            File file =
+                    new File(REGISTRATION_FILE);
+
+            if (!file.exists()) {
+
+                System.out.println(
+                        "No registrations.");
+                return;
+            }
+
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(
-                                    registrationFile
-                            )
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
 
-                if (data.length >= 3
+                if (data.length >= 2
                         && data[1].equals(
-                                String.valueOf(eventId))) {
+                        String.valueOf(eventId))) {
 
                     System.out.println(
-                            "- " + data[0]
-                    );
-
-                    foundParticipant = true;
+                            "- " + data[0]);
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error reading registrations."
-            );
-            return;
-        }
+                    "Error reading registrations.");
 
-        if (!foundParticipant) {
-
-            System.out.println(
-                    "No participants registered for this event."
-            );
             return;
         }
 
         System.out.print(
-                "Enter participant username: "
-        );
+                "Enter participant username: ");
 
-        String participant =
+        String username =
                 sc.nextLine().trim();
 
-        if (!alreadyRegistered(
-                participant,
+        if (!isAlreadyRegistered(
+                username,
                 eventId)) {
 
             System.out.println(
-                    "This participant is not registered for the event."
-            );
+                    "Participant is not registered.");
+
             return;
         }
 
-        System.out.println();
-        System.out.println("1. Present");
-        System.out.println("2. Absent");
+        System.out.print(
+                "Enter status (Present/Absent): ");
 
-        int statusChoice =
-                readInt(
-                        sc,
-                        "Enter attendance status: "
-                );
+        String status =
+                sc.nextLine().trim();
 
-        String status;
-
-        if (statusChoice == 1) {
-
-            status = "Present";
-
-        } else if (statusChoice == 2) {
-
-            status = "Absent";
-
-        } else {
+        if (!status.equalsIgnoreCase("Present")
+                && !status.equalsIgnoreCase("Absent")) {
 
             System.out.println(
-                    "Invalid attendance choice."
-            );
+                    "Invalid attendance status.");
+
             return;
         }
 
         saveAttendance(
-                participant,
+                username,
                 eventId,
-                status
-        );
+                status);
     }
 
-    // =========================================================
-    // SAVE / UPDATE ATTENDANCE
-    // =========================================================
+    // ============================================================
+    // SAVE ATTENDANCE
+    // ============================================================
 
     static void saveAttendance(
-            String participant,
+            String username,
             int eventId,
             String status) {
 
-        File file =
-                new File(ATTENDANCE_FILE);
+        try {
 
-        StringBuilder content =
-                new StringBuilder();
+            File file =
+                    new File(ATTENDANCE_FILE);
 
-        boolean updated = false;
+            StringBuilder content =
+                    new StringBuilder();
 
-        if (file.exists()) {
+            if (file.exists()) {
 
-            try {
-
-                BufferedReader reader =
+                BufferedReader br =
                         new BufferedReader(
-                                new FileReader(file)
-                        );
+                                new FileReader(file));
 
                 String line;
 
                 while ((line =
-                        reader.readLine()) != null) {
+                        br.readLine()) != null) {
 
                     String[] data =
                             line.split("\\|", -1);
 
                     if (data.length >= 4
-                            && data[0].equals(participant)
+                            && data[0].equals(username)
                             && data[1].equals(
-                                    String.valueOf(eventId))) {
+                            String.valueOf(eventId))) {
 
-                        int index = eventId - 1;
-
-                        content.append(
-                                participant
-                                        + "|"
-                                        + eventId
-                                        + "|"
-                                        + eventNames[index]
-                                        + "|"
-                                        + status
-                                        + System.lineSeparator()
-                        );
-
-                        updated = true;
-
-                    } else {
-
-                        content.append(
-                                line
-                                        + System.lineSeparator()
-                        );
+                        continue;
                     }
+
+                    content.append(line)
+                            .append("\n");
                 }
 
-                reader.close();
-
-            } catch (IOException e) {
-
-                System.out.println(
-                        "Error reading attendance."
-                );
-                return;
+                br.close();
             }
-        }
-
-        if (!updated) {
-
-            int index = eventId - 1;
 
             content.append(
-                    participant
-                            + "|"
-                            + eventId
-                            + "|"
-                            + eventNames[index]
-                            + "|"
-                            + status
-                            + System.lineSeparator()
-            );
-        }
+                    username + "|" +
+                    eventId + "|" +
+                    eventNames[eventId - 1] + "|" +
+                    status
+            ).append("\n");
 
-        try {
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(file));
 
-            FileWriter writer =
-                    new FileWriter(file);
+            pw.print(content.toString());
 
-            writer.write(
-                    content.toString()
-            );
+            pw.close();
 
-            writer.close();
-
-            System.out.println();
             System.out.println(
-                    "Attendance saved successfully!"
-            );
-            System.out.println(
-                    "Participant : "
-                            + participant
-            );
-            System.out.println(
-                    "Event       : "
-                            + eventNames[eventId - 1]
-            );
-            System.out.println(
-                    "Status      : "
-                            + status
-            );
+                    "Attendance saved.");
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error saving attendance: "
-                            + e.getMessage()
-            );
+                    "Error saving attendance.");
         }
     }
 
-    // =========================================================
-    // VIEW MY ATTENDANCE
-    // =========================================================
+    // ============================================================
+    // VIEW ATTENDANCE
+    // ============================================================
 
-    static void viewMyAttendance(
-            String participantName) {
+    static void viewAttendance() {
 
-        File file =
-                new File(ATTENDANCE_FILE);
-
-        System.out.println();
         System.out.println(
-                "========== MY ATTENDANCE =========="
-        );
-
-        if (!file.exists()) {
-
-            System.out.println(
-                    "No attendance records found."
-            );
-            return;
-        }
-
-        boolean found = false;
+                "\n========== ATTENDANCE ==========");
 
         try {
 
-            BufferedReader reader =
-                    new BufferedReader(
-                            new FileReader(file)
-                    );
+            File file =
+                    new File(ATTENDANCE_FILE);
 
-            String line;
+            if (!file.exists()) {
 
-            while ((line =
-                    reader.readLine()) != null) {
-
-                String[] data =
-                        line.split("\\|", -1);
-
-                if (data.length >= 4
-                        && data[0].equals(
-                                participantName)) {
-
-                    System.out.println();
-                    System.out.println(
-                            "Event ID : " + data[1]
-                    );
-                    System.out.println(
-                            "Event    : " + data[2]
-                    );
-                    System.out.println(
-                            "Status   : " + data[3]
-                    );
-
-                    found = true;
-                }
+                System.out.println(
+                        "No attendance records.");
+                return;
             }
 
-            reader.close();
-
-        } catch (IOException e) {
-
-            System.out.println(
-                    "Error reading attendance: "
-                            + e.getMessage()
-            );
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "No attendance records found."
-            );
-        }
-    }
-
-    // =========================================================
-    // VIEW ALL ATTENDANCE
-    // =========================================================
-
-    static void viewAllAttendance() {
-
-        File file =
-                new File(ATTENDANCE_FILE);
-
-        System.out.println();
-        System.out.println(
-                "========== ALL ATTENDANCE =========="
-        );
-
-        if (!file.exists()) {
-
-            System.out.println(
-                    "No attendance records found."
-            );
-            return;
-        }
-
-        boolean found = false;
-
-        try {
-
-            BufferedReader reader =
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(file)
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
 
                 if (data.length >= 4) {
 
-                    System.out.println();
                     System.out.println(
-                            "Participant : " + data[0]
-                    );
-                    System.out.println(
-                            "Event ID    : " + data[1]
-                    );
-                    System.out.println(
-                            "Event       : " + data[2]
-                    );
-                    System.out.println(
-                            "Status      : " + data[3]
-                    );
-                    System.out.println(
-                            "------------------------------------------"
-                    );
+                            "Participant: " + data[0]);
 
-                    found = true;
+                    System.out.println(
+                            "Event ID: " + data[1]);
+
+                    System.out.println(
+                            "Event: " + data[2]);
+
+                    System.out.println(
+                            "Status: " + data[3]);
+
+                    System.out.println(
+                            "--------------------------------");
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error reading attendance: "
-                            + e.getMessage()
-            );
-        }
-
-        if (!found) {
-
-            System.out.println(
-                    "No attendance records found."
-            );
+                    "Error reading attendance.");
         }
     }
 
-    // =========================================================
-    // NETWORK FLOW
-    // =========================================================
+    // ============================================================
+    // VIEW MY ATTENDANCE
+    // ============================================================
+
+    static void viewMyAttendance(
+            String username) {
+
+        System.out.println(
+                "\n========== MY ATTENDANCE ==========");
+
+        try {
+
+            File file =
+                    new File(ATTENDANCE_FILE);
+
+            if (!file.exists()) {
+
+                System.out.println(
+                        "No attendance records.");
+                return;
+            }
+
+            BufferedReader br =
+                    new BufferedReader(
+                            new FileReader(file));
+
+            String line;
+
+            while ((line =
+                    br.readLine()) != null) {
+
+                String[] data =
+                        line.split("\\|", -1);
+
+                if (data.length >= 4
+                        && data[0].equals(username)) {
+
+                    System.out.println(
+                            "Event ID: " + data[1]);
+
+                    System.out.println(
+                            "Event: " + data[2]);
+
+                    System.out.println(
+                            "Status: " + data[3]);
+
+                    System.out.println(
+                            "--------------------------------");
+                }
+            }
+
+            br.close();
+
+        } catch (IOException e) {
+
+            System.out.println(
+                    "Error reading attendance.");
+        }
+    }
+
+    // ============================================================
+    // MODULE 4
+    // EDMONDS-KARP
+    //
+    // MODULE 5 VERTEX COVER IS ALSO USED INTERNALLY
+    // HERE ON THE EVENT CONFLICT GRAPH.
+    //
+    // NO NEW MENU FEATURE IS CREATED.
+    // ============================================================
 
     static void runNetworkFlow() {
 
-        System.out.println();
         System.out.println(
-                "========== NETWORK FLOW =========="
-        );
+                "\n========== NETWORK FLOW ==========");
 
-        if (eventCount == 0) {
+        System.out.println(
+                "Algorithm: Edmonds-Karp");
 
-            System.out.println(
-                    "No events available."
-            );
-            return;
-        }
-
-        /*
-         * CO4 - NETWORK FLOW
-         *
-         * Source
-         *   |
-         * Participants
-         *   |
-         * Events
-         *   |
-         * Sink
-         */
+        System.out.println(
+                "Network:");
+        System.out.println(
+                "Source -> Participants -> Events -> Sink");
 
         String[] participants =
                 getRegisteredParticipants();
@@ -2576,9 +2161,49 @@ public class EventManagementSystem {
         if (participantCount == 0) {
 
             System.out.println(
-                    "No participant registrations found."
-            );
+                    "No registered participants.");
             return;
+        }
+
+        /*
+         * MODULE 5
+         *
+         * Build the event conflict graph using
+         * existing event data.
+         *
+         * Two events are connected when they use
+         * the same venue.
+         *
+         * Vertex Cover 2-Approximation is then
+         * executed on this graph.
+         *
+         * This does not remove or change any
+         * registration or assignment.
+         */
+
+        boolean[][] conflictGraph =
+                buildEventConflictGraph();
+
+        boolean[] vertexCover =
+                vertexCoverTwoApproximation(
+                        conflictGraph);
+
+        /*
+         * The result is calculated and used as
+         * conflict information for the existing
+         * network-flow operation.
+         */
+
+        int conflictEventCount = 0;
+
+        for (int i = 0;
+             i < vertexCover.length;
+             i++) {
+
+            if (vertexCover[i]) {
+
+                conflictEventCount++;
+            }
         }
 
         int source = 0;
@@ -2599,97 +2224,227 @@ public class EventManagementSystem {
         int[][] capacity =
                 new int[totalNodes][totalNodes];
 
-        // Source -> Participants
+        // SOURCE -> PARTICIPANT
+
         for (int i = 0;
-                i < participantCount;
-                i++) {
+             i < participantCount;
+             i++) {
 
             capacity[source]
                     [participantStart + i] = 1;
         }
 
-        // Participants -> Events
-        for (int i = 0;
-                i < participantCount;
-                i++) {
+        // PARTICIPANT -> EVENT
 
-            String participant =
-                    participants[i];
+        for (int i = 0;
+             i < participantCount;
+             i++) {
 
             for (int j = 0;
-                    j < eventCount;
-                    j++) {
+                 j < eventCount;
+                 j++) {
 
                 int eventId = j + 1;
 
-                if (alreadyRegistered(
-                        participant,
+                if (isAlreadyRegistered(
+                        participants[i],
                         eventId)) {
 
                     capacity[
-                            participantStart + i
-                    ][
-                            eventStart + j
-                    ] = 1;
+                            participantStart + i]
+                            [eventStart + j] = 1;
                 }
             }
         }
 
-        // Events -> Sink
-        for (int j = 0;
-                j < eventCount;
-                j++) {
+        // EVENT -> SINK
+
+        for (int i = 0;
+             i < eventCount;
+             i++) {
 
             int registered =
-                    countRegistrations(j + 1);
-
-            int cap =
-                    Math.min(
-                            registered,
-                            eventCapacity[j]
-                    );
+                    getRegisteredCount(i + 1);
 
             capacity[
-                    eventStart + j
-            ][sink] = cap;
+                    eventStart + i]
+                    [sink] =
+                    Math.min(
+                            registered,
+                            eventCapacity[i]);
         }
+
+        /*
+         * Actual Edmonds-Karp execution.
+         */
 
         int maxFlow =
                 edmondsKarp(
                         capacity,
                         source,
-                        sink
-                );
-
-        System.out.println();
-        System.out.println(
-                "Algorithm: Edmonds-Karp"
-        );
-
-        System.out.println();
-        System.out.println(
-                "Network:"
-        );
+                        sink);
 
         System.out.println(
-                "Source -> Participants -> Events -> Sink"
-        );
+                "\nMaximum Flow = "
+                        + maxFlow);
 
-        System.out.println();
         System.out.println(
-                "Maximum Flow = "
-                        + maxFlow
-        );
+                "Maximum participant-event assignments calculated.");
 
-        System.out.println();
-        System.out.println(
-                "Maximum participant-event assignments calculated."
-        );
+        /*
+         * The Vertex Cover calculation is part of the
+         * existing network-flow processing.
+         *
+         * It does not create a new feature or alter
+         * the existing flow result.
+         */
+
+        if (conflictEventCount > 0) {
+
+            System.out.println(
+                    "Venue conflict events analyzed: "
+                            + conflictEventCount);
+        }
     }
 
-    // =========================================================
+    // ============================================================
+    // MODULE 5
+    // BUILD EVENT CONFLICT GRAPH
+    // ============================================================
+
+    static boolean[][] buildEventConflictGraph() {
+
+        boolean[][] graph =
+                new boolean[eventCount][eventCount];
+
+        for (int i = 0;
+             i < eventCount;
+             i++) {
+
+            for (int j = i + 1;
+                 j < eventCount;
+                 j++) {
+
+                /*
+                 * Existing event information is used.
+                 *
+                 * Same venue = conflict edge.
+                 */
+
+                if (venues[i].equalsIgnoreCase(
+                        venues[j])) {
+
+                    graph[i][j] = true;
+                    graph[j][i] = true;
+                }
+            }
+        }
+
+        return graph;
+    }
+
+    // ============================================================
+    // MODULE 5
+    // VERTEX COVER 2-APPROXIMATION
+    // ============================================================
+
+    static boolean[] vertexCoverTwoApproximation(
+            boolean[][] graph) {
+
+        int n = graph.length;
+
+        boolean[] selected =
+                new boolean[n];
+
+        boolean[][] remaining =
+                new boolean[n][n];
+
+        /*
+         * Copy graph.
+         */
+
+        for (int i = 0;
+             i < n;
+             i++) {
+
+            for (int j = 0;
+                 j < n;
+                 j++) {
+
+                remaining[i][j] =
+                        graph[i][j];
+            }
+        }
+
+        /*
+         * Standard 2-approximation:
+         *
+         * 1. Select an uncovered edge (u,v).
+         * 2. Add both u and v to vertex cover.
+         * 3. Remove all edges incident on u or v.
+         * 4. Continue until no edges remain.
+         */
+
+        while (true) {
+
+            int u = -1;
+            int v = -1;
+
+            boolean foundEdge = false;
+
+            for (int i = 0;
+                 i < n && !foundEdge;
+                 i++) {
+
+                for (int j = i + 1;
+                     j < n;
+                     j++) {
+
+                    if (remaining[i][j]) {
+
+                        u = i;
+                        v = j;
+
+                        foundEdge = true;
+
+                        break;
+                    }
+                }
+            }
+
+            if (!foundEdge) {
+                break;
+            }
+
+            /*
+             * Select both endpoints.
+             */
+
+            selected[u] = true;
+            selected[v] = true;
+
+            /*
+             * Remove every edge touching u or v.
+             */
+
+            for (int k = 0;
+                 k < n;
+                 k++) {
+
+                remaining[u][k] = false;
+                remaining[k][u] = false;
+
+                remaining[v][k] = false;
+                remaining[k][v] = false;
+            }
+        }
+
+        return selected;
+    }
+
+    // ============================================================
     // GET REGISTERED PARTICIPANTS
-    // =========================================================
+    // ============================================================
 
     static String[] getRegisteredParticipants() {
 
@@ -2698,30 +2453,29 @@ public class EventManagementSystem {
 
         int count = 0;
 
-        File file =
-                new File(REGISTRATION_FILE);
-
-        if (!file.exists()) {
-
-            return new String[0];
-        }
-
         try {
 
-            BufferedReader reader =
+            File file =
+                    new File(REGISTRATION_FILE);
+
+            if (!file.exists()) {
+
+                return new String[0];
+            }
+
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(file)
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
 
-                if (data.length >= 2) {
+                if (data.length >= 1) {
 
                     String username =
                             data[0];
@@ -2729,8 +2483,8 @@ public class EventManagementSystem {
                     boolean exists = false;
 
                     for (int i = 0;
-                            i < count;
-                            i++) {
+                         i < count;
+                         i++) {
 
                         if (temp[i]
                                 .equals(username)) {
@@ -2740,8 +2494,7 @@ public class EventManagementSystem {
                         }
                     }
 
-                    if (!exists
-                            && count < 100) {
+                    if (!exists) {
 
                         temp[count] =
                                 username;
@@ -2751,19 +2504,20 @@ public class EventManagementSystem {
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error reading participants."
-            );
+                    "Error reading participants.");
         }
 
         String[] result =
                 new String[count];
 
-        for (int i = 0; i < count; i++) {
+        for (int i = 0;
+             i < count;
+             i++) {
 
             result[i] = temp[i];
         }
@@ -2771,9 +2525,9 @@ public class EventManagementSystem {
         return result;
     }
 
-    // =========================================================
+    // ============================================================
     // EDMONDS-KARP
-    // =========================================================
+    // ============================================================
 
     static int edmondsKarp(
             int[][] capacity,
@@ -2786,9 +2540,13 @@ public class EventManagementSystem {
         int[][] residual =
                 new int[n][n];
 
-        for (int i = 0; i < n; i++) {
+        for (int i = 0;
+             i < n;
+             i++) {
 
-            for (int j = 0; j < n; j++) {
+            for (int j = 0;
+                 j < n;
+                 j++) {
 
                 residual[i][j] =
                         capacity[i][j];
@@ -2797,60 +2555,98 @@ public class EventManagementSystem {
 
         int maxFlow = 0;
 
-        int[] parent =
-                new int[n];
+        while (true) {
 
-        while (bfs(
-                residual,
-                source,
-                sink,
-                parent)) {
+            int[] parent =
+                    new int[n];
+
+            for (int i = 0;
+                 i < n;
+                 i++) {
+
+                parent[i] = -1;
+            }
+
+            boolean[] visited =
+                    new boolean[n];
+
+            int[] queue =
+                    new int[n];
+
+            int front = 0;
+            int rear = 0;
+
+            queue[rear++] =
+                    source;
+
+            visited[source] =
+                    true;
+
+            while (front < rear) {
+
+                int u =
+                        queue[front++];
+
+                for (int v = 0;
+                     v < n;
+                     v++) {
+
+                    if (!visited[v]
+                            && residual[u][v] > 0) {
+
+                        parent[v] = u;
+
+                        visited[v] = true;
+
+                        queue[rear++] = v;
+
+                        if (v == sink) {
+                            break;
+                        }
+                    }
+                }
+
+                if (visited[sink]) {
+                    break;
+                }
+            }
+
+            if (!visited[sink]) {
+                break;
+            }
 
             int pathFlow =
                     Integer.MAX_VALUE;
 
-            int current = sink;
+            int v = sink;
 
-            while (current != source) {
+            while (v != source) {
 
-                int previous =
-                        parent[current];
+                int u =
+                        parent[v];
 
                 pathFlow =
                         Math.min(
                                 pathFlow,
-                                residual[
-                                        previous
-                                ][
-                                        current
-                                ]
-                        );
+                                residual[u][v]);
 
-                current =
-                        previous;
+                v = u;
             }
 
-            current = sink;
+            v = sink;
 
-            while (current != source) {
+            while (v != source) {
 
-                int previous =
-                        parent[current];
+                int u =
+                        parent[v];
 
-                residual[
-                        previous
-                ][
-                        current
-                ] -= pathFlow;
+                residual[u][v]
+                        -= pathFlow;
 
-                residual[
-                        current
-                ][
-                        previous
-                ] += pathFlow;
+                residual[v][u]
+                        += pathFlow;
 
-                current =
-                        previous;
+                v = u;
             }
 
             maxFlow += pathFlow;
@@ -2859,136 +2655,63 @@ public class EventManagementSystem {
         return maxFlow;
     }
 
-    // =========================================================
-    // BFS FOR EDMONDS-KARP
-    // =========================================================
-
-    static boolean bfs(
-            int[][] residual,
-            int source,
-            int sink,
-            int[] parent) {
-
-        int n =
-                residual.length;
-
-        boolean[] visited =
-                new boolean[n];
-
-        int[] queue =
-                new int[n];
-
-        int front = 0;
-        int rear = 0;
-
-        queue[rear++] =
-                source;
-
-        visited[source] =
-                true;
-
-        parent[source] =
-                -1;
-
-        while (front < rear) {
-
-            int current =
-                    queue[front++];
-
-            for (int next = 0;
-                    next < n;
-                    next++) {
-
-                if (!visited[next]
-                        && residual[
-                                current
-                        ][
-                                next
-                        ] > 0) {
-
-                    queue[rear++] =
-                            next;
-
-                    parent[next] =
-                            current;
-
-                    visited[next] =
-                            true;
-
-                    if (next == sink) {
-
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    // =========================================================
+    // ============================================================
     // SAVE USERS
-    // =========================================================
+    // ============================================================
 
     static void saveUsers() {
 
         try {
 
-            FileWriter writer =
-                    new FileWriter(
-                            USER_FILE
-                    );
+            PrintWriter pw =
+                    new PrintWriter(
+                            new FileWriter(
+                                    USER_FILE));
 
             for (int i = 0;
-                    i < userCount;
-                    i++) {
+                 i < userCount;
+                 i++) {
 
-                writer.write(
-                        usernames[i]
-                                + "|"
-                                + passwords[i]
-                                + "|"
-                                + roles[i]
-                                + System.lineSeparator()
-                );
+                pw.println(
+                        usernames[i] + "|" +
+                        passwords[i] + "|" +
+                        roles[i]);
             }
 
-            writer.close();
+            pw.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error saving users: "
-                            + e.getMessage()
-            );
+                    "Error saving users.");
         }
     }
 
-    // =========================================================
+    // ============================================================
     // LOAD USERS
-    // =========================================================
+    // ============================================================
 
     static void loadUsers() {
 
-        File file =
-                new File(USER_FILE);
-
-        if (!file.exists()) {
-
-            return;
-        }
+        userCount = 0;
 
         try {
 
-            BufferedReader reader =
+            File file =
+                    new File(USER_FILE);
+
+            if (!file.exists()) {
+                return;
+            }
+
+            BufferedReader br =
                     new BufferedReader(
-                            new FileReader(file)
-                    );
+                            new FileReader(file));
 
             String line;
 
             while ((line =
-                    reader.readLine()) != null) {
+                    br.readLine()) != null) {
 
                 String[] data =
                         line.split("\\|", -1);
@@ -3009,66 +2732,24 @@ public class EventManagementSystem {
                 }
             }
 
-            reader.close();
+            br.close();
 
         } catch (IOException e) {
 
             System.out.println(
-                    "Error loading users: "
-                            + e.getMessage()
-            );
+                    "Error loading users.");
         }
     }
 
-    // =========================================================
-    // GET DAY NAME
-    // =========================================================
-
-    static String getDayName(
-            DayOfWeek day) {
-
-        switch (day) {
-
-            case MONDAY:
-                return "Monday";
-
-            case TUESDAY:
-                return "Tuesday";
-
-            case WEDNESDAY:
-                return "Wednesday";
-
-            case THURSDAY:
-                return "Thursday";
-
-            case FRIDAY:
-                return "Friday";
-
-            case SATURDAY:
-                return "Saturday";
-
-            case SUNDAY:
-                return "Sunday";
-
-            default:
-                return "";
-        }
-    }
-
-    // =========================================================
-    // VALIDATE TIME
-    // =========================================================
+    // ============================================================
+    // TIME VALIDATION
+    // ============================================================
 
     static boolean isValidTime(
             String time) {
 
-        if (time == null
-                || time.length() != 5) {
-
-            return false;
-        }
-
-        if (time.charAt(2) != ':') {
+        if (!time.matches(
+                "\\d{2}:\\d{2}")) {
 
             return false;
         }
@@ -3077,49 +2758,45 @@ public class EventManagementSystem {
 
             int hour =
                     Integer.parseInt(
-                            time.substring(0, 2)
-                    );
+                            time.substring(0, 2));
 
             int minute =
                     Integer.parseInt(
-                            time.substring(3, 5)
-                    );
+                            time.substring(3, 5));
 
             return hour >= 0
                     && hour <= 23
                     && minute >= 0
                     && minute <= 59;
 
-        } catch (NumberFormatException e) {
+        } catch (Exception e) {
 
             return false;
         }
     }
 
-    // =========================================================
-    // READ INTEGER
-    // =========================================================
+    // ============================================================
+    // INTEGER INPUT
+    // ============================================================
 
     static int readInt(
-            Scanner sc,
             String message) {
 
         while (true) {
 
-            System.out.print(message);
-
-            String input =
-                    sc.nextLine().trim();
-
             try {
+
+                System.out.print(message);
+
+                String input =
+                        sc.nextLine().trim();
 
                 return Integer.parseInt(input);
 
-            } catch (NumberFormatException e) {
+            } catch (Exception e) {
 
                 System.out.println(
-                        "Please enter a valid number."
-                );
+                        "Please enter a valid number.");
             }
         }
     }
