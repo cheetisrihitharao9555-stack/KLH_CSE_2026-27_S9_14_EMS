@@ -1,0 +1,4 @@
+bhavana|dsa|28-08-2026|Friday|08:00|10:56|auditorium
+bhavana|1|os
+bharath|2|dsa3
+bharath|4|Hackathon 2026|03-10-2026|SATURDAY|09:00|17:00|Innovation Lab
